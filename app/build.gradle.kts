@@ -54,8 +54,8 @@ dependencies {
     implementation(libs.androidx.compose.material3)
 
     // Paging
-    implementation(libs.androidx.paging.runtime)
-    implementation(libs.androidx.paging.compose)
+    implementation("androidx.paging:paging-runtime:3.3.5")
+    implementation("androidx.paging:paging-compose:3.3.5")
 
     // Hilt
     implementation(libs.hilt.android)
