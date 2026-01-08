@@ -25,7 +25,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.flow.collectLatest
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Button
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GalleryScreenRoot(
     viewModel: GalleryViewModel = hiltViewModel()
@@ -39,6 +51,17 @@ fun GalleryScreenRoot(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         viewModel.onAction(GalleryAction.PermissionResult(isGranted))
+    }
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(uiState.selectedPhotoDetail) {
+        if (uiState.selectedPhotoDetail != null) {
+            scope.launch { sheetState.show() }
+        } else {
+            scope.launch { sheetState.hide() }
+        }
     }
 
     // 초기 권한 확인 및 Event 수집
@@ -84,10 +107,26 @@ fun GalleryScreenRoot(
         if (uiState.permissionGranted) {
             GalleryScreen(
                 pagedPhotos = pagedPhotos,
-                onPhotoClick = { photoId -> /* 상세 화면 미구현 */ },
+                onPhotoClick = { photo -> viewModel.onAction(GalleryAction.OnPhotoClick(photo)) },
                 onPhotoLongClick = { photo -> viewModel.onAction(GalleryAction.OnPhotoLongClick(photo)) },
                 modifier = Modifier.padding(innerPadding)
             )
+
+            // Bottom Sheet
+            if (uiState.selectedPhotoDetail != null) {
+                ModalBottomSheet(
+                    onDismissRequest = { viewModel.onAction(GalleryAction.OnDismissBottomSheet) },
+                    sheetState = sheetState
+                ) {
+                    val detail = uiState.selectedPhotoDetail!!
+                    PhotoDetailSheetContent(
+                        detail = detail,
+                        onShareClick = {
+                           viewModel.onAction(GalleryAction.OnShareClick(detail.uri))
+                        }
+                    )
+                }
+            }
         } else {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -96,5 +135,47 @@ fun GalleryScreenRoot(
                 Text(text = "권한이 필요합니다.")
             }
         }
+    }
+}
+
+@Composable
+fun PhotoDetailSheetContent(
+    detail: com.devhjs.customgalary.domain.model.PhotoDetail,
+    onShareClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text("Photo Details", style = MaterialTheme.typography.titleLarge)
+
+        DetailItem("Date", detail.dateTaken)
+        DetailItem("Time", detail.time)
+        DetailItem("File Name", detail.filename)
+        DetailItem("Size", detail.fileSize)
+        DetailItem("Resolution", detail.resolution)
+        if (detail.location != null) {
+            DetailItem("Location", detail.location)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = onShareClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Share Photo")
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+@Composable
+fun DetailItem(label: String, value: String) {
+    Column {
+        Text(text = label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+        Text(text = value, style = MaterialTheme.typography.bodyLarge)
     }
 }

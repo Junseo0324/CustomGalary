@@ -6,5 +6,8 @@ import com.devhjs.customgalary.domain.model.Photo
 sealed interface GalleryAction {
     data object CheckPermission : GalleryAction
     data class PermissionResult(val isGranted: Boolean) : GalleryAction
+    data class OnPhotoClick(val photo: Photo) : GalleryAction
     data class OnPhotoLongClick(val photo: Photo) : GalleryAction
+    data class OnShareClick(val uri: String) : GalleryAction
+    data object OnDismissBottomSheet : GalleryAction
 }

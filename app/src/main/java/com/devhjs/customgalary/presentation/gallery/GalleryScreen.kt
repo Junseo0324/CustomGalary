@@ -2,15 +2,10 @@ package com.devhjs.customgalary.presentation.gallery
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,13 +14,14 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.devhjs.customgalary.domain.model.Photo
+import com.devhjs.customgalary.presentation.component.ErrorItem
 import com.devhjs.customgalary.presentation.component.LoadingIndicator
 import com.devhjs.customgalary.presentation.component.PhotoItem
 
 @Composable
 fun GalleryScreen(
     pagedPhotos: LazyPagingItems<Photo>,
-    onPhotoClick: (Long) -> Unit,
+    onPhotoClick: (Photo) -> Unit,
     onPhotoLongClick: (Photo) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -46,7 +42,7 @@ fun GalleryScreen(
                 if (photo != null) {
                     PhotoItem(
                         photo = photo,
-                        onClick = { onPhotoClick(photo.id) },
+                        onClick = { onPhotoClick(photo) },
                         onLongClick = { onPhotoLongClick(photo) }
                     )
                 }
@@ -79,21 +75,6 @@ fun GalleryScreen(
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun ErrorItem(message: String, onRetry: () -> Unit) {
-    Box(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = message, color = MaterialTheme.colorScheme.error)
-            Button(onClick = onRetry) {
-                Text(text = "Retry")
             }
         }
     }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.devhjs.customgalary.domain.model.Photo
+import com.devhjs.customgalary.domain.usecase.GetPhotoDetailUseCase
 import com.devhjs.customgalary.domain.usecase.GetPhotosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -19,7 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GalleryViewModel @Inject constructor(
-    private val getPhotosUseCase: GetPhotosUseCase
+    private val getPhotosUseCase: GetPhotosUseCase,
+    private val getPhotoDetailUseCase: GetPhotoDetailUseCase
 ) : ViewModel() {
 
     // UI State
@@ -45,8 +47,20 @@ class GalleryViewModel @Inject constructor(
                     sendEvent(GalleryEvent.ShowToast("권한이 필요합니다."))
                 }
             }
+            is GalleryAction.OnPhotoClick -> {
+                viewModelScope.launch {
+                    val detail = getPhotoDetailUseCase(action.photo.uri)
+                    _uiState.update { it.copy(selectedPhotoDetail = detail) }
+                }
+            }
             is GalleryAction.OnPhotoLongClick -> {
                 sendEvent(GalleryEvent.ShareImage(action.photo.uri))
+            }
+            is GalleryAction.OnShareClick -> {
+                sendEvent(GalleryEvent.ShareImage(action.uri))
+            }
+            is GalleryAction.OnDismissBottomSheet -> {
+                _uiState.update { it.copy(selectedPhotoDetail = null) }
             }
         }
     }

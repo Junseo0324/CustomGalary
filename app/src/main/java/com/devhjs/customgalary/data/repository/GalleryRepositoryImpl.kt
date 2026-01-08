@@ -6,6 +6,7 @@ import androidx.paging.PagingData
 import com.devhjs.customgalary.data.source.PhotoDataSource
 import com.devhjs.customgalary.data.source.PhotoPagingSource
 import com.devhjs.customgalary.domain.model.Photo
+import com.devhjs.customgalary.domain.model.PhotoDetail
 import com.devhjs.customgalary.domain.repository.GalleryRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -22,5 +23,9 @@ class GalleryRepositoryImpl @Inject constructor(
             ),
             pagingSourceFactory = { PhotoPagingSource(dataSource) }
         ).flow
+    }
+
+    override suspend fun getPhotoDetail(uri: String): PhotoDetail {
+        return dataSource.getPhotoDetail(uri)
     }
 }
