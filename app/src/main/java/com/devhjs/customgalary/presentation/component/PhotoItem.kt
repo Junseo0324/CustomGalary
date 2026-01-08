@@ -10,12 +10,14 @@ import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.devhjs.customgalary.domain.model.Photo
+import androidx.compose.foundation.combinedClickable
 
-
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun PhotoItem(
     photo: Photo,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     Box(
         modifier = Modifier.aspectRatio(1f) // 정사각형
@@ -31,8 +33,12 @@ fun PhotoItem(
         )
         // 투명 버튼으로 클릭 처리
         androidx.compose.material3.Surface(
-            onClick = onClick,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick
+                ),
             color = androidx.compose.ui.graphics.Color.Transparent
         ) {}
     }

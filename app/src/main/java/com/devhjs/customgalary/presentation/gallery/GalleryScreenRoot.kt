@@ -1,6 +1,8 @@
 package com.devhjs.customgalary.presentation.gallery
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -53,6 +55,14 @@ fun GalleryScreenRoot(
                 is GalleryEvent.NavigateToDetail -> {
                     // TODO: 상세 화면 이동 처리
                 }
+                is GalleryEvent.ShareImage -> {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "image/*"
+                        putExtra(Intent.EXTRA_STREAM, Uri.parse(event.imageUri))
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    context.startActivity(Intent.createChooser(shareIntent, "Share Image"))
+                }
                 is GalleryEvent.ShowToast -> Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
             }
         }
@@ -74,7 +84,8 @@ fun GalleryScreenRoot(
         if (uiState.permissionGranted) {
             GalleryScreen(
                 pagedPhotos = pagedPhotos,
-                onPhotoClick = { photoId -> /* 상세 화면 미구현으로 인한 클릭 이벤트 무시 */ },
+                onPhotoClick = { photoId -> /* 상세 화면 미구현 */ },
+                onPhotoLongClick = { photo -> viewModel.onAction(GalleryAction.OnPhotoLongClick(photo)) },
                 modifier = Modifier.padding(innerPadding)
             )
         } else {

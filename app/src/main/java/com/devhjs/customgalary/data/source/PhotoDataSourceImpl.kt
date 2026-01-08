@@ -19,20 +19,44 @@ class PhotoDataSourceImpl @Inject constructor(
             MediaStore.Images.Media.DATE_TAKEN
         )
 
-        val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC LIMIT $limit OFFSET $offset"
+        val cursor = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val bundle = android.os.Bundle().apply {
+                putInt(ContentResolver.QUERY_ARG_LIMIT, limit)
+                putInt(ContentResolver.QUERY_ARG_OFFSET, offset)
+                putStringArray(
+                    ContentResolver.QUERY_ARG_SORT_COLUMNS,
+                    arrayOf(MediaStore.Images.Media.DATE_TAKEN)
+                )
+                putInt(
+                    ContentResolver.QUERY_ARG_SORT_DIRECTION,
+                    ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
+                )
+            }
+            contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                bundle,
+                null
+            )
+        } else {
+            val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC LIMIT $limit OFFSET $offset"
+            contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                null,
+                null,
+                sortOrder
+            )
+        }
 
-        val cursor = contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            null,
-            null,
-            sortOrder
-        )
+        android.util.Log.d("PhotoDataSource", "Querying photos: limit=$limit, offset=$offset")
 
         cursor?.use {
             val idColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
             val nameColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
             val dateColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
+            
+            android.util.Log.d("PhotoDataSource", "Cursor count: ${it.count}")
 
             while (it.moveToNext()) {
                 val id = it.getLong(idColumn)
@@ -46,6 +70,8 @@ class PhotoDataSourceImpl @Inject constructor(
                 photos.add(Photo(id, contentUri.toString(), dateTaken, name))
             }
         }
+        
+        android.util.Log.d("PhotoDataSource", "Fetched ${photos.size} photos")
         return photos
     }
 }
